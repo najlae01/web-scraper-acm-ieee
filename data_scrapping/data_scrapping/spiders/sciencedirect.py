@@ -5,38 +5,42 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support.wait import WebDriverWait
-from data_scrapping.items import DataScrappingItem
+from ..items import DataScrappingItem
+import time
 
 
 class ScienceDirectSpider(scrapy.Spider):
     name = "sciencedirect"
     start_urls = None
-    driver = webdriver.Chrome()
-    allowed_domains = ["sciencedirect.com"]
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36",
-        "Accept": "application/json, text/plain, */*",
-        "Origin": "https://www.sciencedirect.com/",
-        "Content-Type": "application/json",
-    }
+    topic = None
+    allowed_domains = ["www.sciencedirect.com"]
 
-    handle_httpstatus_list = [302]
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome_options.add_argument("--window-size=1920,1080")
+
     handle_httpstatus_list = [301]
-
-    user_agent_list = [
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36',
-        'Mozilla/5.0 (iPhone; CPU iPhone OS 14_4_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1',
-        'Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)',
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363',
-    ]
 
     def __init__(self, keyword=None, topic=None, *args, **kwargs):
         super(ScienceDirectSpider, self).__init__(*args, **kwargs)
+        self.topic = topic
+        self.driver = webdriver.Chrome(options=self.chrome_options)
+        self.driver.get('https://www.sciencedirect.com/')
+        time.sleep(5)
+        self.driver.find_element(By.ID, 'gh-signin-btn').click()
+        time.sleep(5)
+        username = self.driver.find_element(By.ID, "bdd-email")
+        username.send_keys("najlae.abarghache@etu.uae.ac.ma")
+        time.sleep(5)
+        self.driver.find_element(By.ID, "bdd-elsPrimaryBtn").click()
+        password = self.driver.find_element(By.ID, "bdd-password")
+        password.send_keys("Fstt2023.")
+        time.sleep(5)
+        self.driver.find_element(By.ID, "bdd-elsPrimaryBtn").click()
+        time.sleep(5)
         self.start_urls = ['https://www.sciencedirect.com/search']
-        self.driver.get("https://www.sciencedirect.com/search?qs=" + topic)
-        self.r = scrapy.Request("https://www.sciencedirect.com/search?qs=" + topic,
-                               method='POST', headers=self.headers)
+        self.driver.get('https://www.sciencedirect.com/search?qs=' + topic)
 
     def parse(self, response):
         delay = 10

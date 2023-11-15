@@ -1,6 +1,6 @@
 import scrapy
 from scrapy_splash import SplashRequest
-from data_scrapping.items import DataScrappingItem
+from ..items import DataScrappingItem
 
 
 class AcmSpider(scrapy.Spider):
