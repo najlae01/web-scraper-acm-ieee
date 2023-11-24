@@ -10,11 +10,20 @@ HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/22.0.1207.1 Safari/537.1'
 
 ROBOTSTXT_OBEY = False
-MEDIA_ALLOW_REDIRECTS = False
-DOWNLOAD_DELAY = 10
-RANDOMIZE_DOWNLOAD_DELAY = True
+COOKIES_ENABLED = True
+COOKIES_DEBUG = True
+#MEDIA_ALLOW_REDIRECTS = True
+#DOWNLOAD_DELAY = 3
+#RANDOMIZE_DOWNLOAD_DELAY = True
 
-REDIRECT_ENABLED = True
+#REDIRECT_ENABLED = True
+
+SPIDER_MIDDLEWARES = {
+   #"data_scrapping.middlewares.DataScrappingSpiderMiddleware": 543,
+   "scrapy_splash.SplashCookiesMiddleware": 723,
+   "scrapy_splash.SplashMiddleware": 725,
+   "scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware": 810,
+}
 
 ITEM_PIPELINES = {
    "data_scrapping.pipelines.DataScrappingPipeline": 300,
