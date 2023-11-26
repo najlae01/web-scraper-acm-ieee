@@ -3,7 +3,6 @@ import re
 from urllib.parse import urlencode
 from bs4 import BeautifulSoup
 from scrapy_selenium import SeleniumRequest
-from scrapy.http import HtmlResponse
 from ..items import DataScrappingItem
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,7 +10,6 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
 
 
 class IeeeSpider(scrapy.Spider):
@@ -36,7 +34,7 @@ class IeeeSpider(scrapy.Spider):
                                        options=self.chrome_options)
 
     def start_requests(self):
-        for i in range(240, 1000):
+        for i in range(0, 400):
             params = {
                 'newsearch': 'true',
                 'queryText': self.topic,
@@ -92,26 +90,24 @@ class IeeeSpider(scrapy.Spider):
             if reference_text:
                 references.append(reference_text.text.strip())
 
-        citation_selector = soup.select_one(
-            '.document-banner-metric-container .document-banner-metric-count:nth-child(1)')
+        citation_element = soup.select_one(
+            '.document-banner-metric-container .document-banner-metric:nth-child(1)')
+        citation_selector = citation_element.select_one('.document-banner-metric-count')
         downloads_element = soup.select_one(
-            '.document-banner-metric-container .document-banner-metric-count:nth-child(2)')
-        if downloads_element is None:
-            citations = 0
+            '.document-banner-metric-container .document-banner-metric:nth-child(2)')
+        downloads_selector = downloads_element.select_one('.document-banner-metric-count')
+        citations = 0
+        if citation_selector:
             try:
-                downloads = int(citation_selector.text)
+                citations = int(citation_selector.text)
+            except ValueError:
+                citations = 0
+        downloads = 0
+        if downloads_selector:
+            try:
+                downloads = int(downloads_selector.text)
             except ValueError:
                 downloads = 0
-        else:
-            if citation_selector:
-                try:
-                    citations = int(''.join(filter(str.isdigit, citation_selector.text)))
-                except ValueError:
-                    citations = 0
-                try:
-                    downloads = int(downloads_element.text)
-                except ValueError:
-                    downloads = 0
 
         # journal
         publisher = "IEEE"
@@ -147,7 +143,6 @@ class IeeeSpider(scrapy.Spider):
                 university_country_parent = author_element.find('div', class_='col-14-24')
 
             university_country_selector = university_country_parent.find_all('div')[1]
-            print('elemeeeeeeeeeeent '+ university_country_selector.text)
             if university_country_selector:
                 university_country_text = university_country_selector.text
                 university_match = re.match(r'^([^,]+)', university_country_text)
